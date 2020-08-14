@@ -22,6 +22,8 @@
   height: 400px;
   display: flex;
   flex-wrap: wrap;
+  margin:20px;
+  background-color: red;
 }
 
 .grid-display {
@@ -29,4 +31,49 @@
   height: 400px;
   margin: 20px;
   background-color: yellow;
+}
+
+.destroyer-container {
+  width: 80px;
+  height: 40px;
+  background-color: orange;
+  display: flex;
+  margin: 10px;
+}
+
+.submarine-container {
+  width: 120px;
+  height: 40px;
+  background-color: pink;
+  display: flex;
+  margin: 10px;
+}
+
+.cruiser-container {
+  width: 120px;
+  height: 40px;
+  background-color: purple;
+  display: flex;
+  margin: 10px;
+}
+
+.carrier-container {
+  width: 200px;
+  height: 40px;
+  background-color: aqua;
+  display: flex;
+  margin: 10px;
+}
+
+.battleship-container {
+  width: 160px;
+  height: 40px;
+  background-color: green;
+  display: flex;
+  margin: 10px;
+}
+
+.ship div {
+  width:40px;
+  height:40px;
 }
