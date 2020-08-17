@@ -21,6 +21,7 @@ $(document).ready(function () {
   const width = 10;
   const userSquares = [];
   const computerSquares = [];
+  let isHorizontal = true;
 
   // create board
   function createBoard(grid, squares) {
@@ -78,7 +79,7 @@ $(document).ready(function () {
   // draw computer ships in random locations
   function drawShip(ship) {
     let randomDirection = Math.floor(Math.random() * 2);
-    let current = ship.direction[randomDirection];
+    let directionArray = ship.direction[randomDirection];
     if (randomDirection === 0) direction = 1;
     if (randomDirection === 1) direction = 10;
     let randomStart = Math.abs(
@@ -88,20 +89,20 @@ $(document).ready(function () {
       )
     );
     // array.some - tests whether at least one element in the array passes the test
-    const isTaken = current.some((index) =>
-      computerSquares[randomStart + index].classList.contains('taken')
+    const isTaken = directionArray.some((el) =>
+      computerSquares[randomStart + el].classList.contains('taken')
     );
-    const isAtRightEdge = current.some(
-      (index) => (randomStart + index) % width === width - 1
+    const isAtRightEdge = directionArray.some(
+      (el) => (randomStart + el) % width === width - 1
     );
-    const isAtLeftEdge = current.some(
-      (index) => (randomStart + index) % width === 0
+    const isAtLeftEdge = directionArray.some(
+      (el) => (randomStart + el) % width === 0
     );
 
     if (!isTaken && !isAtRightEdge && !isAtLeftEdge) {
-      current.forEach((index) => {
+      directionArray.forEach((el) => {
         // add taken to classlist of each square in of the ship
-        computerSquares[randomStart + index].classList.add('taken', ship.name);
+        computerSquares[randomStart + el].classList.add('taken', ship.name);
       });
     }
     // draw again if doesn't work
@@ -112,4 +113,79 @@ $(document).ready(function () {
   shipArray.forEach((el) => {
     drawShip(el);
   });
+
+  // rotates ships
+  function rotate() {
+    if (isHorizontal) {
+      destroyer.attr('class', 'destroyer-container-vertical');
+      cruiser.attr('class', 'cruiser-container-vertical');
+      submarine.attr('class', 'submarine-container-vertical');
+      carrier.attr('class', 'carrier-container-vertical');
+      battleship.attr('class', 'battleship-container-vertical');
+    } else {
+      destroyer.attr('class', 'destroyer-container');
+      cruiser.attr('class', 'cruiser-container');
+      submarine.attr('class', 'submarine-container');
+      carrier.attr('class', 'carrier-container');
+      battleship.attr('class', 'battleship-container');
+    }
+    isHorizontal = !isHorizontal;
+  }
+
+  // rotate ships on click
+  rotateButton.click(rotate);
+  let selectedShipNameWithIndex;
+  let draggedShip;
+  let draggedShipLength;
+  // drag user ship
+  ships.each(function () {
+    $(this).on('dragstart', dragStart);
+  });
+  ships.each(function () {
+    $(this).on('mousedown', (e) => {
+      selectedShipNameWithIndex = e.target.id;
+      // console.log(selectedShipNameWithIndex);
+    });
+  });
+  // userSquares.forEach(function () {
+  //   $(this).on('dragstart', dragStart);
+  // });
+  userSquares.forEach(function (el) {
+    $(el).on('dragover', (e) => e.preventDefault());
+  });
+  userSquares.forEach(function (el) {
+    $(el).on('dragenter', (e) => e.preventDefault());
+  });
+  userSquares.forEach(function (el) {
+    $(el).on('dragleave', dragLeave);
+  });
+  userSquares.forEach(function (el) {
+    $(el).on('drop', dragDrop);
+  });
+  // $(userSquares[0]).on('drop', dragDrop);
+  userSquares.forEach(function (el) {
+    $(el).on('dragend', dragEnd);
+  });
+
+  // started dragging
+  function dragStart(e) {
+    draggedShip = e.target;
+    draggedShipLength = e.target.childNodes.length; // ??
+    // console.log(draggedShip);
+    // console.log(draggedShipLength);
+  }
+
+  function dragLeave() {}
+  function dragDrop(e) {
+    let shipNameWithLastId = $(draggedShip).children().last().attr('id');
+    let shipClass = shipNameWithLastId.slice(0, -2);
+    console.log(shipClass);
+    let lastShipIndex = parseInt(shipNameWithLastId.substr(-1));
+    let shipLastIdOnBoard = lastShipIndex + parseInt(e.target.dataset.id);
+    selectedShipSquareIndex = parseInt(selectedShipNameWithIndex.substr(-1));
+    console.log(selectedShipSquareIndex);
+    shipLastIdOnBoard = shipLastIdOnBoard - selectedShipSquareIndex;
+    console.log(shipLastIdOnBoard);
+  }
+  function dragEnd() {}
 });
