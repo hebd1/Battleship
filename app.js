@@ -1,22 +1,22 @@
 // make sure content is loaded first
 $(document).ready(function () {
-  const userGrid = $('.grid-user');
-  const computerGrid = $('.grid-computer');
-  const displayGrid = $('grid-display');
-  const ships = $('.ship');
+  const userGrid = $(".grid-user");
+  const computerGrid = $(".grid-computer");
+  const displayGrid = $("grid-display");
+  const ships = $(".ship");
 
   // ships
-  const destroyer = $('.destroyer-container');
-  const carrier = $('.carrier-container');
-  const submarine = $('.submarine-container');
-  const cruiser = $('.cruiser-container');
-  const battleship = $('.battleship-container');
+  const destroyer = $(".destroyer-container");
+  const carrier = $(".carrier-container");
+  const submarine = $(".submarine-container");
+  const cruiser = $(".cruiser-container");
+  const battleship = $(".battleship-container");
 
   // buttons
-  const startButton = $('#start');
-  const rotateButton = $('#rotate');
-  const turnDisplay = $('#whose-go');
-  const infoDisplay = $('#info');
+  const startButton = $("#start");
+  const rotateButton = $("#rotate");
+  const turnDisplay = $("#whose-go");
+  const infoDisplay = $("#info");
 
   const width = 10;
   const userSquares = [];
@@ -27,10 +27,10 @@ $(document).ready(function () {
   function createBoard(grid, squares) {
     // es6 syntax for squaring number
     for (let i = 0; i < width ** 2; i++) {
-      let square = document.createElement('div');
+      let square = document.createElement("div");
       square.dataset.id = i;
       grid.append(square);
-      squares.push(square);
+      squares.push(square); // changing user squares changes the grid element
     }
   }
 
@@ -40,35 +40,35 @@ $(document).ready(function () {
   // ships
   const shipArray = [
     {
-      name: 'destroyer',
+      name: "destroyer",
       direction: [
         [0, 1], // vertical
         [0, width], // horizontal
       ],
     },
     {
-      name: 'submarine',
+      name: "submarine",
       direction: [
         [0, 1, 2],
         [0, width, width * 2],
       ],
     },
     {
-      name: 'cruiser',
+      name: "cruiser",
       direction: [
         [0, 1, 2],
         [0, width, width * 2],
       ],
     },
     {
-      name: 'battleship',
+      name: "battleship",
       direction: [
         [0, 1, 2, 3],
         [0, width, width * 2, width * 3],
       ],
     },
     {
-      name: 'carrier',
+      name: "carrier",
       direction: [
         [0, 1, 2, 3, 4],
         [0, width, width * 2, width * 3, width * 4],
@@ -90,7 +90,7 @@ $(document).ready(function () {
     );
     // array.some - tests whether at least one element in the array passes the test
     const isTaken = directionArray.some((el) =>
-      computerSquares[randomStart + el].classList.contains('taken')
+      computerSquares[randomStart + el].classList.contains("taken")
     );
     const isAtRightEdge = directionArray.some(
       (el) => (randomStart + el) % width === width - 1
@@ -102,7 +102,7 @@ $(document).ready(function () {
     if (!isTaken && !isAtRightEdge && !isAtLeftEdge) {
       directionArray.forEach((el) => {
         // add taken to classlist of each square in of the ship
-        computerSquares[randomStart + el].classList.add('taken', ship.name);
+        computerSquares[randomStart + el].classList.add("taken", ship.name);
       });
     }
     // draw again if doesn't work
@@ -117,17 +117,17 @@ $(document).ready(function () {
   // rotates ships
   function rotate() {
     if (isHorizontal) {
-      destroyer.attr('class', 'destroyer-container-vertical');
-      cruiser.attr('class', 'cruiser-container-vertical');
-      submarine.attr('class', 'submarine-container-vertical');
-      carrier.attr('class', 'carrier-container-vertical');
-      battleship.attr('class', 'battleship-container-vertical');
+      destroyer.attr("class", "destroyer-container-vertical");
+      cruiser.attr("class", "cruiser-container-vertical");
+      submarine.attr("class", "submarine-container-vertical");
+      carrier.attr("class", "carrier-container-vertical");
+      battleship.attr("class", "battleship-container-vertical");
     } else {
-      destroyer.attr('class', 'destroyer-container');
-      cruiser.attr('class', 'cruiser-container');
-      submarine.attr('class', 'submarine-container');
-      carrier.attr('class', 'carrier-container');
-      battleship.attr('class', 'battleship-container');
+      destroyer.attr("class", "destroyer-container");
+      cruiser.attr("class", "cruiser-container");
+      submarine.attr("class", "submarine-container");
+      carrier.attr("class", "carrier-container");
+      battleship.attr("class", "battleship-container");
     }
     isHorizontal = !isHorizontal;
   }
@@ -139,10 +139,10 @@ $(document).ready(function () {
   let draggedShipLength;
   // drag user ship
   ships.each(function () {
-    $(this).on('dragstart', dragStart);
+    $(this).on("dragstart", dragStart);
   });
   ships.each(function () {
-    $(this).on('mousedown', (e) => {
+    $(this).on("mousedown", (e) => {
       selectedShipNameWithIndex = e.target.id;
       // console.log(selectedShipNameWithIndex);
     });
@@ -151,41 +151,50 @@ $(document).ready(function () {
   //   $(this).on('dragstart', dragStart);
   // });
   userSquares.forEach(function (el) {
-    $(el).on('dragover', (e) => e.preventDefault());
+    $(el).on("dragover", (e) => e.preventDefault());
   });
   userSquares.forEach(function (el) {
-    $(el).on('dragenter', (e) => e.preventDefault());
+    $(el).on("dragenter", (e) => e.preventDefault());
   });
   userSquares.forEach(function (el) {
-    $(el).on('dragleave', dragLeave);
+    $(el).on("dragleave", dragLeave);
   });
   userSquares.forEach(function (el) {
-    $(el).on('drop', dragDrop);
+    $(el).on("drop", dragDrop);
   });
-  // $(userSquares[0]).on('drop', dragDrop);
   userSquares.forEach(function (el) {
-    $(el).on('dragend', dragEnd);
+    $(el).on("dragend", dragEnd);
   });
 
   // started dragging
   function dragStart(e) {
     draggedShip = e.target;
-    draggedShipLength = e.target.childNodes.length; // ??
-    // console.log(draggedShip);
-    // console.log(draggedShipLength);
+    draggedShipLength = e.target.querySelectorAll("div").length;
   }
 
   function dragLeave() {}
   function dragDrop(e) {
-    let shipNameWithLastId = $(draggedShip).children().last().attr('id');
+    let shipNameWithLastId = $(draggedShip).children().last().attr("id");
     let shipClass = shipNameWithLastId.slice(0, -2);
-    console.log(shipClass);
     let lastShipIndex = parseInt(shipNameWithLastId.substr(-1));
     let shipLastIdOnBoard = lastShipIndex + parseInt(e.target.dataset.id);
     selectedShipSquareIndex = parseInt(selectedShipNameWithIndex.substr(-1));
-    console.log(selectedShipSquareIndex);
     shipLastIdOnBoard = shipLastIdOnBoard - selectedShipSquareIndex;
-    console.log(shipLastIdOnBoard);
+
+    if (isHorizontal) {
+      // add class to game board
+      for (let i = 0; i < draggedShipLength; i++) {
+        userSquares[
+          parseInt(e.target.id) - selectedShipSquareIndex + i
+        ].classList.add("taken", shipClass);
+      }
+    } else {
+      for (let i = 0; i < draggedShipLength; i += width) {
+        userSquares[
+          parseInt(e.target.id) - selectedShipSquareIndex + i
+        ].classList.add("taken", shipClass);
+      }
+    }
   }
   function dragEnd() {}
 });
