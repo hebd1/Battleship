@@ -22,6 +22,22 @@ $(document).ready(function () {
   const userSquares = [];
   const computerSquares = [];
   let isHorizontal = true;
+  let isGameOver = false;
+  let currentPlayer = 'user';
+
+  // player ship hit counts
+  let destroyerCount = 0;
+  let submarineCount = 0;
+  let cruiserCount = 0;
+  let battleshipCount = 0;
+  let carrierCount = 0;
+
+  // computer ship hit counts
+  let cpuDestroyerCount = 0;
+  let cpuSubmarineCount = 0;
+  let cpuCruiserCount = 0;
+  let cpuBattleshipCount = 0;
+  let cpuCarrierCount = 0;
 
   // create board
   function createBoard(grid, squares) {
@@ -198,6 +214,7 @@ $(document).ready(function () {
       10 * lastShipIndex
     );
 
+    // TODO: disallow adding ships at the top
     const notAllowedVertical = [];
     for (i = 100; i < 140; i += 10) {
       for (j = 9; j > -1; j--) {
@@ -208,9 +225,6 @@ $(document).ready(function () {
       0,
       10 * lastShipIndex
     );
-
-    console.log(notAllowedHorizontal);
-    console.log(notAllowedHorizontalForSelectedShip);
     if (
       isHorizontal &&
       !notAllowedHorizontalForSelectedShip.includes(shipLastIdOnBoard) &&
@@ -234,5 +248,84 @@ $(document).ready(function () {
     } else return;
     $(draggedShip).remove();
   }
-  function dragEnd() {}
+  function dragEnd() {
+    console.log('dragend');
+  }
+
+  startButton.click(playGame);
+
+  // game logic
+  function playGame() {
+    console.log('current player: ' + currentPlayer);
+    if (isGameOver) return;
+    if (currentPlayer === 'user') {
+      computerSquares.forEach(function (square) {
+        $(square).click(revealSquare);
+      });
+    } else if (currentPlayer === 'computer') {
+      var duration = Math.floor(Math.random() * 2000) + 1;
+      setTimeout(computerTurn, duration);
+    }
+  }
+
+  // reveals to player if their turn was a hit or miss
+  function revealSquare(square) {
+    let squareClass = $(square.target).attr('class');
+    let nextTurn = 'computer';
+    console.log('square class: ' + squareClass);
+    if (squareClass != null) {
+      if (squareClass.indexOf('taken') >= 0) {
+        $(square.target).addClass('boom'); //hit
+        nextTurn = 'user';
+      } else if (squareClass.indexOf('boom') < 0) {
+        if (squareClass.indexOf('destroyer') >= 0) destroyerCount++;
+        else if (squareClass.indexOf('submarine') >= 0) submarineCount++;
+        else if (squareClass.indexOf('cruiser') >= 0) cruiserCount++;
+        else if (squareClass.indexOf('battleship') >= 0) battleshipCount++;
+        else if (squareClass.indexOf('carrier') >= 0) carrierCount++;
+      }
+    } else {
+      $(square.target).addClass('miss'); //miss
+    }
+
+    currentPlayer = nextTurn;
+    turnDisplay.html(nextTurn + ' turn');
+    // remove event listeners from computer squares after their turn
+    computerSquares.forEach(function (square) {
+      $(square).off();
+    });
+    playGame();
+  }
+  function computerTurn() {
+    console.log('computer turn ');
+    let randomIndex = Math.floor(Math.random() * userSquares.length);
+    console.log('random index: ' + randomIndex);
+    let squareClass = $(userSquares[randomIndex]).attr('class');
+    console.log('square class: ' + squareClass);
+    let nextTurn = 'user';
+    if (squareClass != null) {
+      if (
+        squareClass.indexOf('miss' >= 0) ||
+        squareClass.indexOf('boom') >= 0
+      ) {
+        computerTurn();
+        return;
+      } else if (squareClass.indexOf('taken') >= 0) {
+        $(userSquares[randomIndex]).addClass('boom'); //hit
+        nextTurn = 'computer';
+      } else {
+        if (squareClass.indexOf('destroyer') >= 0) cpuDestroyerCount++;
+        else if (squareClass.indexOf('submarine') >= 0) cpuSubmarineCount++;
+        else if (squareClass.indexOf('cruiser') >= 0) cpuCruiserCount++;
+        else if (squareClass.indexOf('battleship') >= 0) cpuBattleshipCount++;
+        else if (squareClass.indexOf('carrier') >= 0) cpuCarrierCount++;
+      }
+    } else {
+      $(userSquares[randomIndex]).addClass('miss');
+    }
+
+    currentPlayer = nextTurn;
+    turnDisplay.html(nextTurn + ' turn');
+    playGame();
+  }
 });

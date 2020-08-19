@@ -21,7 +21,7 @@
   height: 400px;
   display: flex;
   flex-wrap: wrap;
-  background-color: red;
+  background-color: lightgreen;
 }
 
 .grid-display {
@@ -144,4 +144,11 @@
 
 .carrier {
   background-color: aqua;
+}
+
+.boom {
+  background-color: red;
+}
+.miss {
+  background-color: black;
 }
