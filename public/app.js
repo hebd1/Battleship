@@ -5,6 +5,30 @@ $(document).ready(function () {
   const displayGrid = $("grid-display");
   const ships = $(".ship");
 
+  // client vars
+  const socket = io(); // comes from socketio script
+  let currentPlayer = "user";
+  let gameMode = "";
+  let playerNum = 0;
+  let ready = false;
+  let enemyReady = false;
+  let allShipsPlaced = false;
+  let shotFired = -1;
+
+  // get player num from server
+  socket.on("player-number", (playerIndex) => {
+    console.log({ playerIndex });
+    if (playerIndex === -1) {
+      infoDisplay.html("Sorry the server is full..");
+    } else {
+      playerNum = parseInt(playerIndex); // socketio sends data as a string
+      if (playerNum === 1) {
+        currentPlayer = "enemy";
+      }
+      console.log({ playerNum });
+    }
+  });
+
   // ships
   const destroyer = $(".destroyer-container");
   const carrier = $(".carrier-container");
