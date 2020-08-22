@@ -28,9 +28,16 @@ io.on('connection', (socket) => {
   }
 
   // Tell the connecting client what player number they are
+  // socket.emit sends to only the socket that connected/emitted connection event
   socket.emit('player-number', playerIndex);
   console.log({ playerIndex });
 
   // Ignore player 3
   if (playerIndex === -1) return;
+
+  connections[playerIndex] = false; // false = not ready
+
+  // alert other player of new connection
+  // broadcast.emit sends to everyone
+  socket.broadcast.emit('player-connection', playerIndex);
 });

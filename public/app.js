@@ -5,10 +5,9 @@ $(document).ready(function () {
   const displayGrid = $('grid-display');
   const ships = $('.ship');
   const singlePlayerButton = $('#singlePlayerButton');
-  const multiplayerButton = $('#multiplayerButton');
+  const multiplayerButton = $('#multiPlayerButton');
 
   // client vars
-  const socket = io(); // comes from socketio script
   let currPlayer = 'user'; // default is user
   let gameMode = '';
   let playerNum = 0;
@@ -21,19 +20,39 @@ $(document).ready(function () {
   singlePlayerButton.click(startSinglePlayer);
   multiplayerButton.click(startMultiPlayer);
 
-  // get player num from server
-  socket.on('player-number', (playerIndex) => {
-    console.log({ playerIndex });
-    if (playerIndex === -1) {
-      infoDisplay.html('Sorry the server is full..');
-    } else {
-      playerNum = parseInt(playerIndex); // socketio sends data as a string
-      if (playerNum === 1) {
-        currPlayer = 'enemy';
+  // Multiplayer function
+  function startMultiPlayer() {
+    gameMode = 'multiPlayer';
+    const socket = io(); // only need sockets for multiplayer. Emits connection event
+
+    // get player num from server
+    socket.on('player-number', (playerIndex) => {
+      console.log({ playerIndex });
+      if (playerIndex === -1) {
+        infoDisplay.html('Sorry the server is full..');
+      } else {
+        playerNum = parseInt(playerIndex); // socketio sends data as a string
+        if (playerNum === 1) {
+          currPlayer = 'enemy';
+        }
+        console.log({ playerNum });
       }
-      console.log({ playerNum });
+    });
+
+    // another player has connected
+    socket.on('player-connection', (playerIndex) => {
+      console.log(`Player ${playerIndex} has connected or disconnected`);
+      playerConnectedOrDisconnected(playerIndex);
+    });
+
+    function playerConnectedOrDisconnected(playerIndex) {
+      let player = `.p${parseInt(playerIndex) + 1}`;
+      $(`${player} .connected span`).addClass('green');
+      if (parseInt(playerIndex) === playerNum) {
+        $(player).css('fontWeight', 'bold');
+      }
     }
-  });
+  }
 
   // Single Player Function
   function startSinglePlayer() {
@@ -43,6 +62,8 @@ $(document).ready(function () {
     shipArray.forEach((el) => {
       drawShip(el);
     });
+
+    startButton.click(playGameSingle);
   }
 
   // ships
@@ -287,10 +308,8 @@ $(document).ready(function () {
     console.log('dragend');
   }
 
-  startButton.click(playGame);
-
   // game logic
-  function playGame() {
+  function playGameSingle() {
     console.log('current player: ' + currentPlayer);
     if (isGameOver) return;
     if (currentPlayer === 'user') {
@@ -334,7 +353,7 @@ $(document).ready(function () {
       $(square).off();
     });
     checkForWins();
-    playGame();
+    playGameSingle();
   }
 
   // Chooses random square for computer turn
@@ -368,7 +387,7 @@ $(document).ready(function () {
     currentPlayer = nextTurn;
     turnDisplay.html(nextTurn + ' turn');
     checkForWins();
-    playGame();
+    playGameSingle();
   }
 
   function checkForWins() {
