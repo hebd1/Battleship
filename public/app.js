@@ -81,8 +81,7 @@ $(document).ready(function () {
     // Setup event listeners for firing
     computerSquares.forEach((square) => {
       $(square).click(() => {
-        console.log('here');
-        if (currentPlayer == 'user' && ready && enemyReady) {
+        if (currPlayer == 'user' && ready && enemyReady) {
           shotFired = square.dataset.id;
           socket.emit('fire', shotFired);
         }
@@ -92,6 +91,7 @@ $(document).ready(function () {
     // On fire received from other player
     socket.on('fire', (id) => {
       enemyGo(id);
+      console.log('enemy fired');
       const square = userSquares[id];
       socket.emit('fire-reply', square.classList);
       playGameMulti(socket);
@@ -99,6 +99,7 @@ $(document).ready(function () {
 
     // on fire reply received
     socket.on('fire-reply', (classList) => {
+      console.log('received fire reply');
       revealSquare(classList);
       playGameMulti(socket);
     });
@@ -147,7 +148,6 @@ $(document).ready(function () {
   const computerSquares = [];
   let isHorizontal = true;
   let isGameOver = false;
-  let currentPlayer = 'user';
 
   // player ship hit counts
   let destroyerCount = 0;
@@ -376,13 +376,13 @@ $(document).ready(function () {
 
   // game logic
   function playGameSingle() {
-    console.log('current player: ' + currentPlayer);
+    console.log('current player: ' + currPlayer);
     if (isGameOver) return;
-    if (currentPlayer === 'user') {
+    if (currPlayer === 'user') {
       computerSquares.forEach(function (square) {
         $(square).click(revealSquare.classList);
       });
-    } else if (currentPlayer === 'computer') {
+    } else if (currPlayer === 'enemy') {
       var duration = Math.floor(Math.random() * 1000) + 1;
       setTimeout(enemyGo, duration);
     }
@@ -412,14 +412,17 @@ $(document).ready(function () {
   // reveals to player if their turn was a hit or miss
   // takes class list of square
   function revealSquare(classList) {
-    const enemySquare = computerGrid.find(`#${shotFired}`);
+    const enemySquare = $(computerGrid).find(`div[data-id='${shotFired}']`);
+    console.log({ enemySquare });
+    console.log('index ' + shotFired);
     const obj = Object.values(classList);
-    let nextTurn = 'computer';
+    let nextTurn = 'enemy';
     if (obj.length > 0) {
       if (obj.indexOf('miss') >= 0 || obj.indexOf('boom') >= 0) {
+        console.log('miss');
+        enemySquare.addClass('miss');
       } else if (obj.indexOf('taken') >= 0) {
-        console.log('taken');
-        enemySquare.classList.add('boom'); //hit
+        enemySquare.addClass('boom'); //hit
         nextTurn = 'user';
         if (obj.indexOf('destroyer') >= 0) destroyerCount++;
         else if (obj.indexOf('submarine') >= 0) submarineCount++;
@@ -428,10 +431,10 @@ $(document).ready(function () {
         else if (obj.indexOf('carrier') >= 0) carrierCount++;
       }
     } else {
-      enemySquare.classList.add('miss'); //miss
+      enemySquare.addClass('miss'); //miss
     }
 
-    currentPlayer = nextTurn;
+    currPlayer = nextTurn;
     turnDisplay.html(nextTurn + ' turn');
     // remove event listeners from computer squares after their turn
     computerSquares.forEach(function (square) {
@@ -443,9 +446,10 @@ $(document).ready(function () {
 
   // Chooses random square for computer turn
   function enemyGo(square) {
-    console.log('enemy turn');
-    if (gameMode == 'singlePlayer')
+    console.log('enemy went');
+    if (gameMode == 'singlePlayer') {
       square = Math.floor(Math.random() * userSquares.length);
+    }
     console.log('ship index: ' + square);
     let squareClass = $(userSquares[square]).attr('class');
     console.log('square class: ' + squareClass);
@@ -462,7 +466,7 @@ $(document).ready(function () {
       // valid guess. if taken, mark a boom, else a miss
       else if (squareClass.indexOf('taken') >= 0) {
         $(userSquares[square]).addClass('boom'); // hit
-        nextTurn = 'computer';
+        nextTurn = 'enemy';
         if (squareClass.indexOf('destroyer') >= 0) cpuDestroyerCount++;
         else if (squareClass.indexOf('submarine') >= 0) cpuSubmarineCount++;
         else if (squareClass.indexOf('cruiser') >= 0) cpuCruiserCount++;
@@ -473,9 +477,8 @@ $(document).ready(function () {
       $(userSquares[square]).addClass('miss');
     }
 
-    currentPlayer = nextTurn;
-    turnDisplay.html(nextTurn + ' turn');
     checkForWins();
+    currPlayer = nextTurn;
     if (gameMode == 'singlePlayer') playGameSingle();
   }
 
