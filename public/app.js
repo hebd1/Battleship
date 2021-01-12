@@ -93,7 +93,7 @@ $(document).ready(function () {
       enemyGo(id);
       console.log('enemy fired');
       const square = userSquares[id];
-      socket.emit('fire-reply', square.classList);
+      socket.emit('fire-reply', $(userSquares[square]).attr('class'));
       playGameMulti(socket);
     });
 
@@ -465,6 +465,7 @@ $(document).ready(function () {
       }
       // valid guess. if taken, mark a boom, else a miss
       else if (squareClass.indexOf('taken') >= 0) {
+        console.log('taken');
         $(userSquares[square]).addClass('boom'); // hit
         nextTurn = 'enemy';
         if (squareClass.indexOf('destroyer') >= 0) cpuDestroyerCount++;
