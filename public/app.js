@@ -415,7 +415,7 @@ $(document).ready(function () {
     const enemySquare = $(computerGrid).find(`div[data-id='${shotFired}']`);
     console.log({ enemySquare });
     console.log('index ' + shotFired);
-    const obj = Object.values(classList);
+    const obj = classList;
     let nextTurn = 'enemy';
     if (obj.length > 0) {
       if (obj.indexOf('miss') >= 0 || obj.indexOf('boom') >= 0) {
