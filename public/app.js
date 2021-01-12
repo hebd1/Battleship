@@ -79,21 +79,21 @@ $(document).ready(function () {
     });
 
     // Setup event listeners for firing
-    computerSquares.forEach((square) => {
-      $(square).click(() => {
-        if (currPlayer == 'user' && ready && enemyReady) {
-          shotFired = square.dataset.id;
-          socket.emit('fire', shotFired);
-        }
-      });
-    });
+    // computerSquares.forEach((square) => {
+    //   $(square).click(() => {
+    //     if (currPlayer == 'user' && ready && enemyReady) {
+    //       shotFired = square.dataset.id;
+    //       socket.emit('fire', shotFired);
+    //     }
+    //   });
+    // });
 
     // On fire received from other player
     socket.on('fire', (id) => {
       enemyGo(id);
       console.log('enemy fired');
       const square = userSquares[id];
-      socket.emit('fire-reply', $(userSquares[square]).attr('class'));
+      socket.emit('fire-reply', $(userSquares[id]).attr('class'));
       playGameMulti(socket);
     });
 
@@ -388,6 +388,26 @@ $(document).ready(function () {
     }
   }
 
+  function enableSquareClick(socket) {
+    // Setup event listeners for firing
+
+    computerSquares.forEach((square) => {
+      $(square).click(() => {
+        if (currPlayer == 'user' && ready && enemyReady) {
+          shotFired = square.dataset.id;
+          socket.emit('fire', shotFired);
+        }
+      });
+    });
+  }
+
+  function disableSquareClick() {
+    // remove event listeners from computer squares after their turn
+    computerSquares.forEach(function (square) {
+      $(square).off();
+    });
+  }
+
   function playGameMulti(socket) {
     if (isGameOver) return;
     if (!ready) {
@@ -398,8 +418,10 @@ $(document).ready(function () {
     if (enemyReady) {
       if (currPlayer === 'user') {
         turnDisplay.html('Your turn');
+        enableSquareClick(socket);
       } else if (currPlayer === 'enemy') {
         turnDisplay.html("Enemy's turn");
+        disableSquareClick();
       }
     }
   }
@@ -413,22 +435,22 @@ $(document).ready(function () {
   // takes class list of square
   function revealSquare(classList) {
     const enemySquare = $(computerGrid).find(`div[data-id='${shotFired}']`);
-    console.log({ enemySquare });
+    console.log({ classList });
     console.log('index ' + shotFired);
-    const obj = classList;
+    const squareClass = classList;
     let nextTurn = 'enemy';
-    if (obj.length > 0) {
-      if (obj.indexOf('miss') >= 0 || obj.indexOf('boom') >= 0) {
+    if (squareClass != null) {
+      if (squareClass.indexOf('miss') >= 0) {
         console.log('miss');
         enemySquare.addClass('miss');
-      } else if (obj.indexOf('taken') >= 0) {
+      } else if (squareClass.indexOf('taken') >= 0) {
         enemySquare.addClass('boom'); //hit
         nextTurn = 'user';
-        if (obj.indexOf('destroyer') >= 0) destroyerCount++;
-        else if (obj.indexOf('submarine') >= 0) submarineCount++;
-        else if (obj.indexOf('cruiser') >= 0) cruiserCount++;
-        else if (obj.indexOf('battleship') >= 0) battleshipCount++;
-        else if (obj.indexOf('carrier') >= 0) carrierCount++;
+        if (squareClass.indexOf('destroyer') >= 0) destroyerCount++;
+        else if (squareClass.indexOf('submarine') >= 0) submarineCount++;
+        else if (squareClass.indexOf('cruiser') >= 0) cruiserCount++;
+        else if (squareClass.indexOf('battleship') >= 0) battleshipCount++;
+        else if (squareClass.indexOf('carrier') >= 0) carrierCount++;
       }
     } else {
       enemySquare.addClass('miss'); //miss
@@ -436,17 +458,13 @@ $(document).ready(function () {
 
     currPlayer = nextTurn;
     turnDisplay.html(nextTurn + ' turn');
-    // remove event listeners from computer squares after their turn
-    computerSquares.forEach(function (square) {
-      $(square).off();
-    });
+
     checkForWins();
     if (gameMode == 'singlePlayer') playGameSingle();
   }
 
   // Chooses random square for computer turn
   function enemyGo(square) {
-    console.log('enemy went');
     if (gameMode == 'singlePlayer') {
       square = Math.floor(Math.random() * userSquares.length);
     }
@@ -487,7 +505,7 @@ $(document).ready(function () {
     // check for sunk ships
     // players
     if (destroyerCount === 2) {
-      infoDisplay.html("You sunk the computer's destoryer!");
+      infoDisplay.html("You sunk the computer's destroyer!");
       destroyerCount = 10;
     }
     if (submarineCount === 3) {
