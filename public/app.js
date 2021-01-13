@@ -2,7 +2,7 @@
 $(document).ready(function () {
   const userGrid = $('.grid-user');
   const computerGrid = $('.grid-computer');
-  const displayGrid = $('grid-display');
+  const displayGrid = $('.grid-display');
   const ships = $('.ship');
   const singlePlayerButton = $('#singlePlayerButton');
   const multiplayerButton = $('#multiPlayerButton');
@@ -55,6 +55,11 @@ $(document).ready(function () {
       });
     });
 
+    // On timeout
+    socket.on('timeout', () => {
+      infoDisplay.innerHTML = 'You have reached the 10 minute limit';
+    });
+
     // another player has connected
     socket.on('player-connection', (playerIndex) => {
       console.log(`Player ${playerIndex} has connected or disconnected`);
@@ -73,6 +78,7 @@ $(document).ready(function () {
     startButton.click(() => {
       if (allShipsPlaced) {
         playGameMulti(socket);
+        infoDisplay.html('');
       } else {
         infoDisplay.html('Please place all ships before starting');
       }
@@ -90,8 +96,8 @@ $(document).ready(function () {
 
     // On fire received from other player
     socket.on('fire', (id) => {
-      enemyGo(id);
       console.log('enemy fired');
+      enemyGo(id);
       const square = userSquares[id];
       socket.emit('fire-reply', $(userSquares[id]).attr('class'));
       playGameMulti(socket);
@@ -308,6 +314,7 @@ $(document).ready(function () {
   }
 
   function dragLeave() {}
+
   function dragDrop(e) {
     let shipNameWithLastId = $(draggedShip).children().last().attr('id');
     let shipClass = shipNameWithLastId.slice(0, -2);
@@ -368,8 +375,9 @@ $(document).ready(function () {
     $(draggedShip).remove();
 
     // Verify all ships have been placed
-    if ($(displayGrid).find('.ship').length === 0) allShipsPlaced = true;
+    if ($(displayGrid).find('.ship').length == 0) allShipsPlaced = true;
   }
+
   function dragEnd() {
     console.log('dragend');
   }
@@ -390,7 +398,7 @@ $(document).ready(function () {
 
   function enableSquareClick(socket) {
     // Setup event listeners for firing
-
+    infoDisplay.html('');
     computerSquares.forEach((square) => {
       $(square).click(() => {
         if (currPlayer == 'user' && ready && enemyReady) {
@@ -438,14 +446,12 @@ $(document).ready(function () {
     console.log({ classList });
     console.log('index ' + shotFired);
     const squareClass = classList;
-    let nextTurn = 'enemy';
     if (squareClass != null) {
       if (squareClass.indexOf('miss') >= 0) {
         console.log('miss');
         enemySquare.addClass('miss');
       } else if (squareClass.indexOf('taken') >= 0) {
         enemySquare.addClass('boom'); //hit
-        nextTurn = 'user';
         if (squareClass.indexOf('destroyer') >= 0) destroyerCount++;
         else if (squareClass.indexOf('submarine') >= 0) submarineCount++;
         else if (squareClass.indexOf('cruiser') >= 0) cruiserCount++;
@@ -456,9 +462,7 @@ $(document).ready(function () {
       enemySquare.addClass('miss'); //miss
     }
 
-    currPlayer = nextTurn;
-    turnDisplay.html(nextTurn + ' turn');
-
+    currPlayer = 'enemy';
     checkForWins();
     if (gameMode == 'singlePlayer') playGameSingle();
   }
@@ -471,13 +475,13 @@ $(document).ready(function () {
     console.log('ship index: ' + square);
     let squareClass = $(userSquares[square]).attr('class');
     console.log('square class: ' + squareClass);
-    let nextTurn = 'user';
     if (squareClass != null) {
       // enemy tries again if they already guessed this square
       if (
         squareClass.indexOf('miss') >= 0 ||
         (squareClass.indexOf('boom') >= 0 && gameMode == 'singlePlayer')
       ) {
+        console.log('here');
         enemyGo();
         return;
       }
@@ -485,7 +489,6 @@ $(document).ready(function () {
       else if (squareClass.indexOf('taken') >= 0) {
         console.log('taken');
         $(userSquares[square]).addClass('boom'); // hit
-        nextTurn = 'enemy';
         if (squareClass.indexOf('destroyer') >= 0) cpuDestroyerCount++;
         else if (squareClass.indexOf('submarine') >= 0) cpuSubmarineCount++;
         else if (squareClass.indexOf('cruiser') >= 0) cpuCruiserCount++;
@@ -497,7 +500,7 @@ $(document).ready(function () {
     }
 
     checkForWins();
-    currPlayer = nextTurn;
+    currPlayer = 'user';
     if (gameMode == 'singlePlayer') playGameSingle();
   }
 
@@ -505,28 +508,28 @@ $(document).ready(function () {
     // check for sunk ships
     // players
     if (destroyerCount === 2) {
-      infoDisplay.html("You sunk the computer's destroyer!");
+      infoDisplay.html("You sunk the enemy's destroyer!");
       destroyerCount = 10;
     }
     if (submarineCount === 3) {
-      infoDisplay.html("You sunk the computer's submarine!");
+      infoDisplay.html("You sunk the enemy's submarine!");
       submarineCount = 10;
     }
     if (cruiserCount === 3) {
-      infoDisplay.html("You sunk the computer's cruiser!");
+      infoDisplay.html("You sunk the enemy's cruiser!");
       cruiserCount = 10;
     }
     if (battleshipCount === 4) {
-      infoDisplay.html("You sunk the computer's battleship!");
+      infoDisplay.html("You sunk the enemy's battleship!");
       battleshipCount = 10;
     }
     if (carrierCount === 5) {
-      infoDisplay.html("You sunk the computer's carrier!");
+      infoDisplay.html("You sunk the enemy's carrier!");
       carrierCount = 10;
     }
     // computer
     if (cpuDestroyerCount === 2) {
-      infoDisplay.html('Your destoryer has sunk!');
+      infoDisplay.html('Your destroyer has sunk!');
       cpuDestroyerCount = 10;
     }
     if (cpuSubmarineCount === 3) {
@@ -564,7 +567,7 @@ $(document).ready(function () {
         cpuDestroyerCount ===
       50
     ) {
-      infoDisplay.html('You win!');
+      infoDisplay.html('The Enemy wins!');
       gameOver();
     }
   }
